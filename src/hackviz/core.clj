@@ -53,4 +53,4 @@
         app (app-routes conf)]
     (g/initialize-atoms conf)
     (load-repos conf)
-    (run-server app {:port 8080 :join? false})))
+    (run-server app {:port 9000 :join? false})))
