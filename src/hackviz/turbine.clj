@@ -23,10 +23,10 @@
     (client/post url {:body e-json})))
 
 (defn add-commit-events [events]
-  (doseq [e events] (insert-event e "hackathon" "commits")))
+  (doseq [e events] (insert-event e "hackviz" "commits")))
 
 (defn query-commits [q]
-  (query q "hackathon" "commits"))
+  (query q "hackviz" "commits"))
 
 (defn create-matches [criteria]
   (map (fn [[k v]] {k {:eq v}}) criteria))
