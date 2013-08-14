@@ -5,7 +5,7 @@
     "turbinedb-collection": "commits",
     "update-delay": 60000,
     "server-base": "http://localhost:8080",
-    "server-port": 9001,
+    "server-port": 9000,
     "repos": [{
         "name": "repo1",
         "owner": "myOrganization",
