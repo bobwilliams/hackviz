@@ -16,7 +16,7 @@
       [:li
         [:a {:href "#"} "Repositories"]]]])
 
-(defn page [teams]
+(defn overview [teams realtime?]
   (html
     [:html
       [:head
@@ -26,6 +26,7 @@
         [:script {:src "http://code.highcharts.com/highcharts.js"}]
         [:link {:href "css/hackviz.css" :rel "stylesheet" :media "screen"}]
         [:script {:src "js/hackviz.js"}]
+        (when realtime? [:script {:src "js/hackviz-realtime.js"}])
         [:script {:src "js/moment.min.js"}]]
       [:body
         (nav-bar)
@@ -34,5 +35,17 @@
             [:span.caret]]
           [:ul.dropdown-menu
             (map team-link teams)]]
-        [:div#spline {:style "width 100%; height:400px;"}]
-        [:div#pie {:style "min-width: 310px; height: 400px; margin: 0 auto;"}]]]))
+        [:div#spline-commits {:style "width 100%; height:400px;"}]
+        [:div#pie-commits {:style "min-width: 310px; height: 400px; margin: 0 auto;"}]
+        [:div#spline-adds {:style "width 100%; height:400px;"}]
+        [:div#pie-adds {:style "min-width: 310px; height: 400px; margin: 0 auto;"}]
+        [:div#spline-commits-author {:style "width 100%; height:400px;"}]
+        [:div#pie-commits-author {:style "min-width: 310px; height: 400px; margin: 0 auto;"}]
+        [:div#spline-adds-author {:style "width 100%; height:400px;"}]
+        [:div#pie-adds-author {:style "min-width: 310px; height: 400px; margin: 0 auto;"}]]]))
+
+(defn page [teams]
+  (overview teams false))
+
+(defn realtime-page [teams]
+  (overview teams true))

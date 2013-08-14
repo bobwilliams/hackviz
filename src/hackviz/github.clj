@@ -8,6 +8,9 @@
 
 (def iso-formatter (formatter "yyyy-MM-dd'T'HH:mm:ss'Z'"))
 
+(defn callback-url []
+  (str @g/server-base "/github-pubsub"))
+
 (defn auth [] 
   {:oauth-token @g/github-token})
 
@@ -43,3 +46,6 @@
     (let [raw-commits (filter has-keys? (retrieve-raw-commits owner repo ts))]
       (map #(convert-event % owner team repo) raw-commits))
     (catch RuntimeException e (println "Failed retrieve commits (" owner " - " team " - " repo " - " ts "), Exception: " e))))
+
+(defn register-github-pubsub [{:keys [owner repo]}]
+  (repos/pubsubhubub owner repo "subscribe" "push" (callback-url) (auth))) ;; TODO: HMAC Secret

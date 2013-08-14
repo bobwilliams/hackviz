@@ -84,5 +84,4 @@
   (let [filters (get-filters params)
         groups (get-groups params)
         reducers (get-reducers params)]
-    (prn (create-query filters groups reducers))
     (create-query filters groups reducers)))

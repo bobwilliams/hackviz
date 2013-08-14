@@ -7,6 +7,7 @@
 (def server-base (atom "http://localhost:8080"))
 (def scheduler-pool (at/mk-pool))
 (def repositories (atom []))
+(def event-listeners (atom []))
 
 (defn update-atom [atom value]
   (if value (reset! atom value)))
