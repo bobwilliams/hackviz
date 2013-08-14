@@ -23,10 +23,10 @@
     (client/post url {:body e-json})))
 
 (defn add-commit-events [events]
-  (doseq [e events] (insert-event e "hackathon" "commits")))
+  (doseq [e events] (insert-event e @g/turbinedb-database @g/turbinedb-collection)))
 
 (defn query-commits [q]
-  (query q "hackathon" "commits"))
+  (query q @g/turbinedb-database @g/turbinedb-collection))
 
 (defn create-matches [criteria]
   (map (fn [[k v]] {k {:eq v}}) criteria))

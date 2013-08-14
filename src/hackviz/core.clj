@@ -68,4 +68,4 @@
     (load-repos conf)
     (when (:realtime-enabled conf)
       (register-github-pubsub @g/repositories))
-    (run-server app {:port 8080 :join? false})))
+    (run-server app {:port @g/server-port :join? false})))

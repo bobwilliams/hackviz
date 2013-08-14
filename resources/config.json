@@ -4,8 +4,11 @@
     "github-token": "<Github Oauth Token Here>",
     "github-pubsub-secret": "<Random Generated Secret>",
     "turbinedb-url": "http://localhost:8080",
+    "turbinedb-database": "hackviz",
+    "turbinedb-collection": "commits",
     "update-delay": 60000,
     "server-base": "http://localhost:8080",
+    "server-port": 9000,
     "repos": [{
         "name": "repo1",
         "owner": "myOrganization",
