@@ -15,11 +15,14 @@
 (defn update-atom [atom value]
   (if value (reset! atom value)))
 
+(defn or-default [conf key default]
+  (or (key conf) default))
+
 (defn initialize-atoms [conf]
-  (update-atom github-token (:github-token conf))
-  (update-atom turbinedb-url (:turbinedb-url conf))
-  (update-atom turbinedb-database (:turbinedb-database conf))
-  (update-atom turbinedb-collection (:turbinedb-collection conf))
-  (update-atom update-delay (:update-delay conf))
   (update-atom server-base (:server-base conf))
-  (update-atom server-port (:server-port conf)))
+  (update-atom server-port (or (:server-port conf) 9000))
+  (update-atom github-token (:github-token conf))
+  (update-atom turbinedb-url (or (:turbinedb-url conf) "http://localhost:8080"))
+  (update-atom turbinedb-database (or (:turbinedb-database conf) "hackviz"))
+  (update-atom turbinedb-collection (or (:turbinedb-collection conf) "commits"))
+  (update-atom update-delay (or (:update-delay conf) 60000)))
