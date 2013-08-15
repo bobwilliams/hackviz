@@ -13,7 +13,7 @@
                  [clj-http "0.7.4"]
                  [cheshire "5.2.0"]
                  [com.novemberain/monger "1.6.0"]
-                 [tentacles "0.2.5"]
+                 [tentacles "0.2.6-SNAPSHOT"]
                  [clj-time "0.5.1"]
                  [overtone/at-at "1.2.0"]
                  [commons-codec/commons-codec "1.8"]])

@@ -28,13 +28,14 @@
 (defn retrieve-raw-commits [owner repo ts]
   (repos/commits owner repo (merge (auth) {:since (ts-to-iso ts) :all-pages true})))
 
-(defn get-commit-details [commit]
-  (let [resp (client/get (:url commit) {:headers {"Authorization" (str "token " @g/github-token)}})
-        body (:body resp)]
-    (json/parse-string body true)))
+(defn commit-sha [{sha :sha id :id}]
+  (or sha id))
+
+(defn get-commit-details [owner repo commit]
+  (repos/specific-commit owner repo (commit-sha commit)))
 
 (defn convert-event [commit owner team repo]
-  (let [details (get-commit-details commit)
+  (let [details (get-commit-details owner repo commit)
         author (-> details :author :login)
         ts (iso-to-ts (-> details :commit :author :date))
         ups (-> details :stats :additions)
@@ -47,5 +48,5 @@
       (map #(convert-event % owner team repo) raw-commits))
     (catch RuntimeException e (println "Failed retrieve commits (" owner " - " team " - " repo " - " ts "), Exception: " e))))
 
-(defn register-github-pubsub [{:keys [owner repo]}]
-  (repos/pubsubhubub owner repo "subscribe" "push" (callback-url) (auth))) ;; TODO: HMAC Secret
+(defn register-github-pubsub [{:keys [owner name]}]
+  (repos/pubsubhubub owner name "subscribe" "push" (callback-url) (auth))) ;; TODO: HMAC Secret

@@ -45,15 +45,15 @@
       turbine/query-commits))
 
 (defn register-github-pubsub [repos]
-  (doseq [r repos] (gh/register-github-pubsub r)))
+  (doseq [r repos] (gh/register-github-pubsub @r)))
 
 (defroutes routes
   (GET "/alo" [] "alo guvna")
   (GET "/commits" {params :params} (-> params query-turbine json/generate-string))
   (GET "/testpage" [] (views/page (map #(:team @%) @g/repositories)))
   (GET "/realtime" [] (views/realtime-page (map #(:team @%) @g/repositories)))
-  (GET "/commit-events" [] register-event-listener)
-  (POST "/github-pubsub" {body :body} (realtime/handle-github-callback (json/parse-string body true)))
+  (GET "/event-stream" [] register-event-listener)
+  (POST "/github-pubsub" {{payload :payload} :params} (realtime/handle-github-callback (json/parse-string payload true)))
   (route/resources "/"))
 
 (defn app-routes [{mode :mode}]

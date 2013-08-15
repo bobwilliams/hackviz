@@ -8,22 +8,24 @@
   (assoc (gh/convert-event commit owner team name) :msg (:message commit)))
 
 (defn get-repo [{{name :name} :repository}]
-  (first (filter #(= name (:repo %)) @g/repositories)))
+  (first (filter #(= name (:name @%)) @g/repositories))) ;; Todo: Verify Owners
 
 (defn broadcast [events]
   (doseq [listener @g/event-listeners]
-    (send! (key listener) (json/generate-string events) false)))
+    (send! listener (json/generate-string events) false)))
 
 (defn handle-github-callback [callback]
   (when-let [repo (get-repo callback)]
     (let [commits (:commits callback)
-          events (map #(convert-event % repo) commits)]
+          events (map #(convert-event % @repo) commits)]
       (broadcast events))))
 
 (defn on-close-handler [con]
   (on-close con (fn [status]
-                  (swap! g/event-listeners dissoc con))))
+                  (prn "Removing event listener!")
+                  (swap! g/event-listeners #(remove (= % con))))))
 
 (defn register-event-listener [con]
-  (swap! g/event-listeners assoc con true)
+  (prn "Registering event listener!")
+  (swap! g/event-listeners #(conj % con))
   (on-close-handler con))
