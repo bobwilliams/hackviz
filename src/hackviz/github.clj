@@ -32,7 +32,7 @@
   (or sha id))
 
 (defn get-commit-details [owner repo commit]
-  (repos/specific-commit owner repo (commit-sha commit)))
+  (repos/specific-commit owner repo (commit-sha commit) (auth)))
 
 (defn convert-event [commit owner team repo]
   (let [details (get-commit-details owner repo commit)
@@ -45,7 +45,7 @@
 (defn commit-events-since [owner team repo ts]
   (try
     (let [raw-commits (filter has-keys? (retrieve-raw-commits owner repo ts))]
-      (map #(convert-event % owner team repo) raw-commits))
+      (doall (map #(convert-event % owner team repo) raw-commits)))
     (catch RuntimeException e (println "Failed retrieve commits (" owner " - " team " - " repo " - " ts "), Exception: " e))))
 
 (defn register-github-pubsub [{:keys [owner name]}]
