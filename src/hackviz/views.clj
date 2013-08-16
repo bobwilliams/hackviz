@@ -16,6 +16,24 @@
       [:li
         [:a {:href "#"} "Repositories"]]]])
 
+(defn realtime-graphs []
+  [:div 
+    [:div#spline-adds {:style "width 100%; height:400px;"}]
+    [:div#pie-adds {:style "min-width: 310px; height: 400px; margin: 0 auto;"}]
+    [:div#spline-adds-author {:style "width 100%; height:400px;"}]
+    [:div#pie-adds-author {:style "min-width: 310px; height: 400px; margin: 0 auto;"}]])
+
+(defn normal-graphs []
+  [:div 
+    [:div#spline-commits {:style "width 100%; height:400px;"}]
+    [:div#pie-commits {:style "min-width: 310px; height: 400px; margin: 0 auto;"}]
+    [:div#spline-adds {:style "width 100%; height:400px;"}]
+    [:div#pie-adds {:style "min-width: 310px; height: 400px; margin: 0 auto;"}]
+    [:div#spline-commits-author {:style "width 100%; height:400px;"}]
+    [:div#pie-commits-author {:style "min-width: 310px; height: 400px; margin: 0 auto;"}]
+    [:div#spline-adds-author {:style "width 100%; height:400px;"}]
+    [:div#pie-adds-author {:style "min-width: 310px; height: 400px; margin: 0 auto;"}]])
+
 (defn overview [teams realtime?]
   (html
     [:html
@@ -25,8 +43,9 @@
         [:script {:src "bootstrap/js/bootstrap.min.js"}]
         [:script {:src "http://code.highcharts.com/highcharts.js"}]
         [:link {:href "css/hackviz.css" :rel "stylesheet" :media "screen"}]
-        [:script {:src "js/hackviz.js"}]
-        (when realtime? [:script {:src "js/hackviz-realtime.js"}])
+        (if realtime? 
+          [:script {:src "js/hackviz-realtime.js"}]
+          [:script {:src "js/hackviz.js"}])
         [:script {:src "js/moment.min.js"}]]
       [:body
         (nav-bar)
@@ -34,15 +53,10 @@
           [:button.btn.btn-default.dropdown-toggle {:type "button" :data-toggle "dropdown"} "All Teams"
             [:span.caret]]
           [:ul.dropdown-menu
-            (map team-link teams)]]
-        [:div#spline-commits {:style "width 100%; height:400px;"}]
-        [:div#pie-commits {:style "min-width: 310px; height: 400px; margin: 0 auto;"}]
-        [:div#spline-adds {:style "width 100%; height:400px;"}]
-        [:div#pie-adds {:style "min-width: 310px; height: 400px; margin: 0 auto;"}]
-        [:div#spline-commits-author {:style "width 100%; height:400px;"}]
-        [:div#pie-commits-author {:style "min-width: 310px; height: 400px; margin: 0 auto;"}]
-        [:div#spline-adds-author {:style "width 100%; height:400px;"}]
-        [:div#pie-adds-author {:style "min-width: 310px; height: 400px; margin: 0 auto;"}]]]))
+            (map team-link (set teams))]]
+        (if realtime?
+          (realtime-graphs)
+          (normal-graphs))]]))
 
 (defn page [teams]
   (overview teams false))

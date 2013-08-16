@@ -20,10 +20,14 @@
           events (map #(convert-event % @repo) commits)]
       (broadcast events))))
 
+(defn remove-event-listener [con]
+  (swap! g/event-listeners (fn [listeners]
+                             (remove #(= % con) listeners))))
+
 (defn on-close-handler [con]
   (on-close con (fn [status]
                   (prn "Removing event listener!")
-                  (swap! g/event-listeners #(remove (= % con))))))
+                  (remove-event-listener con))))
 
 (defn register-event-listener [con]
   (prn "Registering event listener!")
