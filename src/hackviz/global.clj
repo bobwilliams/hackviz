@@ -11,6 +11,8 @@
 (def scheduler-pool (at/mk-pool))
 (def repositories (atom []))
 (def event-listeners (atom []))
+(def event-buffer (atom []))
+(def buffer-count (atom 100))
 
 (defn update-atom [atom value]
   (if value (reset! atom value)))
@@ -25,4 +27,5 @@
   (update-atom turbinedb-url (or (:turbinedb-url conf) "http://localhost:8080"))
   (update-atom turbinedb-database (or (:turbinedb-database conf) "hackviz"))
   (update-atom turbinedb-collection (or (:turbinedb-collection conf) "commits"))
-  (update-atom update-delay (or (:update-delay conf) 60000)))
+  (update-atom update-delay (or (:update-delay conf) 60000))
+  (update-atom buffer-count (or (:buffer-count conf) 100)))

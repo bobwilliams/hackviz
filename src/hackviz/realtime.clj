@@ -10,15 +10,22 @@
 (defn get-repo [{{name :name} :repository}]
   (first (filter #(= name (:name @%)) @g/repositories))) ;; Todo: Verify Owners
 
+(defn send-to-listener [listener events]
+  (send! listener (json/generate-string events) false))
+
 (defn broadcast [events]
   (doseq [listener @g/event-listeners]
-    (send! listener (json/generate-string events) false)))
+    (send-to-listener listener events)))
+
+(defn buffer [events]
+  (swap! g/event-buffer #(concat events (take @g/buffer-count %))))
 
 (defn handle-github-callback [callback]
   (when-let [repo (get-repo callback)]
     (let [commits (:commits callback)
           events (map #(convert-event % @repo) commits)]
-      (broadcast events))))
+      (broadcast events)
+      (buffer events))))
 
 (defn remove-event-listener [con]
   (swap! g/event-listeners (fn [listeners]
@@ -32,4 +39,5 @@
 (defn register-event-listener [con]
   (prn "Registering event listener!")
   (swap! g/event-listeners #(conj % con))
-  (on-close-handler con))
+  (on-close-handler con)
+  (send-to-listener con @g/event-buffer))

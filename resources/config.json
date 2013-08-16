@@ -1,6 +1,7 @@
 {
     "mode": "prod",
     "realtime-enabled": false,
+    "buffer-count": 100,
     "github-token": "<Github Oauth Token Here>",
     "github-pubsub-secret": "<Random Generated Secret>",
     "turbinedb-url": "http://localhost:8080",
