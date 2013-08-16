@@ -47,6 +47,10 @@
 (defn register-github-pubsub [repos]
   (doseq [r repos] (gh/register-github-pubsub @r)))
 
+(defn pr [obj]
+  (prn "rtime" obj)
+  obj)
+
 (defroutes routes
   (GET "/alo" [] "alo guvna")
   (GET "/commits" {params :params} (-> params query-turbine json/generate-string))
@@ -54,6 +58,7 @@
   (GET "/realtime" [] (views/realtime-page (map #(:team @%) @g/repositories)))
   (GET "/event-stream" [] register-event-listener)
   (POST "/github-pubsub" {{payload :payload} :params} (realtime/handle-github-callback (json/parse-string payload true)))
+  (POST "/stream-test" {body :body} (-> body slurp json/parse-string pr realtime/broadcast))
   (route/resources "/"))
 
 (defn app-routes [{mode :mode}]

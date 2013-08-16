@@ -29,13 +29,17 @@
   (query q @g/turbinedb-database @g/turbinedb-collection))
 
 (defn create-matches [criteria]
-  (map (fn [[k v]] {k {:eq v}}) criteria))
+  (conj (map (fn [[k v]] {k {:eq v}}) criteria) {"author" {:ne "dostraco"}}))
 
 (defn get-first [key results]
   (-> results first :data first :data first key))
 
-(defn create-query [matches groups reduces]
-  {:match (create-matches matches) :group groups :reduce reduces})
+(defn create-query [matches groups reduces start end]
+  (merge
+    {:match (create-matches matches) :group groups :reduce reduces}
+    (when start {:start start})
+    (when end {:end end})))
+  
 
 (defn newest-commit-ts [owner repo]
   (let [matches (create-matches {:owner owner :repo repo})
@@ -80,8 +84,14 @@
 (defn get-filters [params]
   (filter valid-filter? params))
 
+(defn long-or-nil [str]
+  (when str
+    (Long/parseLong str)))
+
 (defn create-query-from-params [params]
   (let [filters (get-filters params)
         groups (get-groups params)
-        reducers (get-reducers params)]
-    (create-query filters groups reducers)))
+        reducers (get-reducers params)
+        start (-> params :start long-or-nil)
+        end (-> params :end long-or-nil)]
+    (create-query filters groups reducers start end)))
