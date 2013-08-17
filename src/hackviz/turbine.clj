@@ -26,10 +26,15 @@
   (doseq [e events] (insert-event e @g/turbinedb-database @g/turbinedb-collection)))
 
 (defn query-commits [q]
+  (prn q)
   (query q @g/turbinedb-database @g/turbinedb-collection))
 
+(defn split-match [m]
+  (let [[k v] (string/split m #":")]
+    {k v}))
+
 (defn create-matches [criteria]
-  (conj (map (fn [[k v]] {k {:eq v}}) criteria) {"author" {:ne "dostraco"}}))
+  (conj (map (fn [[k v]] {k (split-match v)}) criteria) {"author" {:ne "dostraco"}}))
 
 (defn get-first [key results]
   (-> results first :data first :data first key))
@@ -42,7 +47,7 @@
   
 
 (defn newest-commit-ts [owner repo]
-  (let [matches (create-matches {:owner owner :repo repo})
+  (let [matches (create-matches {:owner (str "eq:" owner) :repo (str "eq:" repo)})
         q {:match matches :reduce [{:newest {:max "time"}}]}
         results (query-commits q)
         ts-dbl (-> results first :data first :data first :newest)]
