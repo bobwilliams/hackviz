@@ -47,9 +47,9 @@
 (defn register-github-pubsub [repos]
   (doseq [r repos] (gh/register-github-pubsub @r)))
 
-(defn pr [obj]
-  (prn "rtime" obj)
-  obj)
+(defn buffer-return [events]
+  (realtime/buffer events)
+  events)
 
 (defroutes routes
   (GET "/alo" [] "alo guvna")
@@ -57,8 +57,9 @@
   (GET "/testpage" [] (views/page (map #(:team @%) @g/repositories)))
   (GET "/realtime" [] (views/realtime-page (map #(:team @%) @g/repositories)))
   (GET "/event-stream" [] register-event-listener)
+  (GET "/query-builder" [] (views/query-builder))
   (POST "/github-pubsub" {{payload :payload} :params} (realtime/handle-github-callback (json/parse-string payload true)))
-  (POST "/stream-test" {body :body} (-> body slurp json/parse-string pr realtime/broadcast))
+  (POST "/stream-test" {body :body} (-> body slurp json/parse-string buffer-return realtime/broadcast))
   (route/resources "/"))
 
 (defn app-routes [{mode :mode}]
