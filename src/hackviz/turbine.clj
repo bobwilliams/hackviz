@@ -26,7 +26,6 @@
   (doseq [e events] (insert-event e @g/turbinedb-database @g/turbinedb-collection)))
 
 (defn query-commits [q]
-  (prn q)
   (query q @g/turbinedb-database @g/turbinedb-collection))
 
 (defn split-match [m]
