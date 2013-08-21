@@ -107,42 +107,56 @@ $(function () {
 
     socket.onmessage = function(event) {
         var commits = JSON.parse(event.data);
+        var redraw = commits.length <= 1
         console.log(commits);
         for (i in commits) {
-            updateCharts(commits[i]);
+            updateCharts(commits[i], redraw);
+        }
+        if (!redraw) {
+            redrawCharts();
         }
     };
 });
 
-var updateCharts = function(commit) {
-    updateSpline(commit, $("#spline-adds"), commit.team)
-    updateSpline(commit, $("#spline-adds-author"), commit.author)
-    updatePie(commit, $("#pie-adds"), commit.team)
-    updatePie(commit, $("#pie-adds-author"), commit.author)
+var updateCharts = function(commit, redraw) {
+    updateSpline(commit, $("#spline-adds"), commit.team, redraw)
+    updateSpline(commit, $("#spline-adds-author"), commit.author, redraw)
+    updatePie(commit, $("#pie-adds"), commit.team, redraw)
+    updatePie(commit, $("#pie-adds-author"), commit.author, redraw)
 }
 
+var redrawCharts = function() {
+    $("#spline-adds").highcharts().redraw();
+    $("#spline-adds-author").highcharts().redraw();
+    $("#pie-adds").highcharts().redraw();
+    $("#pie-adds-author").highcharts().redraw();
+}
 
-var updateSpline = function (commit, element, name) {
+var updateSpline = function (commit, element, name, redraw) {
     var chart = element.highcharts();
     var series = find(chart.series, function(s) { return s.name === name });
+    var totalDataPoints = chart.series.reduce(function(a,b) {return a + b.data.length}, 0);
+    var shift = totalDataPoints > 50; // TODO: Find oldest series and remove point
+
     if(series) {
-        series.addPoint([commit.time, commit.additions]);
+        console.log("total: " + totalDataPoints + ", shift: " + shift);
+        series.addPoint([commit.ts, commit.additions], redraw, shift);
     } else {
         chart.addSeries({
             name: name,
-            data: [[commit.time, commit.additions]]
-        });
+            data: [[commit.ts, commit.additions]]
+        }, redraw);
     }
 }
 
-var updatePie = function (commit, element, name) {
+var updatePie = function (commit, element, name, redraw) {
     var chart = element.highcharts();
     var series = chart.series[0];
     var dataPoint = find(series.data, function(d) { return d.name == name});
     if(dataPoint) {
-        dataPoint.update(dataPoint.y + commit.additions);
+        dataPoint.update(dataPoint.y + commit.additions, redraw);
     } else {
-        series.addPoint([name, commit.additions])
+        series.addPoint([name, commit.additions], redraw);
     }
 }
 
