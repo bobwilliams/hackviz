@@ -1,3 +1,9 @@
+Highcharts.setOptions({
+    global: {
+        useUTC: false
+    }
+});
+
 $(function () {
 
     $('#spline-adds').highcharts({
@@ -40,7 +46,8 @@ $(function () {
                         color: '#000000',
                         connectorColor: '#000000',
                         format: '<b>{point.name}</b>: {point.percentage:.1f} %'
-                    }
+                    },
+                    showInLegend: true
                 }
             },
             series: [{
@@ -91,7 +98,8 @@ $(function () {
                         connectorColor: '#000000',
                         format: '<b>{point.name}</b>: {point.percentage:.1f} %'
                     }
-                }
+                },
+                showInLegend: true
             },
             series: [{
                 type: 'pie',
@@ -135,17 +143,22 @@ var redrawCharts = function() {
 var updateSpline = function (commit, element, name, redraw) {
     var chart = element.highcharts();
     var series = find(chart.series, function(s) { return s.name === name });
-    var totalDataPoints = chart.series.reduce(function(a,b) {return a + b.data.length}, 0);
+    var totalDataPoints = chart.series.reduce(function(a,b) { return a + b.data.length }, 0);
     var shift = totalDataPoints > 50; // TODO: Find oldest series and remove point
 
     if(series) {
-        console.log("total: " + totalDataPoints + ", shift: " + shift);
-        series.addPoint([commit.ts, commit.additions], redraw, shift);
+        series.addPoint([commit.ts, commit.additions], redraw);
     } else {
         chart.addSeries({
             name: name,
             data: [[commit.ts, commit.additions]]
         }, redraw);
+    }
+
+    console.log("total: " + totalDataPoints + ", shift: " + shift);
+    if(shift) {
+        var oldestDataPoint = chart.series.reduce(function(a,b) { return a && a.x < b.data[0].x ? a : b.data[0] }, chart.series[0].data[0]);
+        oldestDataPoint.remove(redraw);
     }
 }
 

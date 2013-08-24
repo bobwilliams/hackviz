@@ -51,15 +51,46 @@
   (realtime/buffer events)
   events)
 
+(defn sort-leaders [leaders]
+  (sort #(compare (second %2) (second %1)) leaders))
+
+(defn convert-group [grp]
+  [(-> grp :group) (-> grp :data first :data first first second)])
+
+(defn convert-leaders [results]
+  (take 10 (sort-leaders (map convert-group results))))
+
+(defn leaders [grouping reducers]
+  (let [group [(turbine/convert-group grouping)]
+        reduce [(turbine/convert-reducer reducers)]
+        query (turbine/create-query nil group reduce nil nil)]
+    (prn query)
+    (-> query turbine/query-commits convert-leaders)))
+
+(defn user-commit-leaders []
+  (leaders "author" ["repo" "count"]))
+
+(defn user-code-leaders []
+  (leaders "author" ["additions" "sum"]))
+
+(defn team-commit-leaders []
+  (leaders "team" ["repo" "count"]))
+
+(defn team-code-leaders []
+  (leaders "team" ["additions" "sum"]))
+
 (defroutes routes
   (GET "/alo" [] "alo guvna")
   (GET "/commits" {params :params} (-> params query-turbine json/generate-string))
-  (GET "/testpage" [] (views/page (map #(:team @%) @g/repositories)))
-  (GET "/realtime" [] (views/realtime-page (map #(:team @%) @g/repositories)))
+  (GET "/" [] (views/team-page))
+  (GET "/teams" [] (views/team-page))
+  (GET "/users" [] (views/user-page))
+  (GET "/realtime" [] (views/realtime-page))
   (GET "/event-stream" [] register-event-listener)
   (GET "/query-builder" [] (views/query-builder))
+  (GET "/team-leaderboards" [] (views/leaderboards (team-commit-leaders) (team-code-leaders) :team-leaderboards))
+  (GET "/user-leaderboards" [] (views/leaderboards (user-commit-leaders) (user-code-leaders) :user-leaderboards))
   (POST "/github-pubsub" {{payload :payload} :params} (realtime/handle-github-callback (json/parse-string payload true)))
-  (POST "/stream-test" {body :body} (-> body slurp json/parse-string buffer-return realtime/broadcast))
   (route/resources "/"))
 
 (defn app-routes [{mode :mode}]

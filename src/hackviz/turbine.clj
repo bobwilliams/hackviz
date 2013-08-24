@@ -28,6 +28,9 @@
 (defn query-commits [q]
   (query q @g/turbinedb-database @g/turbinedb-collection))
 
+(defn checkpoint [{:keys [name owner]}]
+  )
+
 (defn split-match [m]
   (let [[k v] (string/split m #":")]
     {k v}))
