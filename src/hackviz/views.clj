@@ -5,16 +5,22 @@
   [:li 
     [:a {:href (str "/" team)} team]])
 
-(defn nav-bar []
-  [:div.navbar
+(defn nav-bar [page]
+  [:div.navbar.navbar-default {:role "navigation"}
     [:a.navbar-brand {:href "#"} "Hackviz"]
     [:ul.nav.navbar-nav
-      [:li.active
-        [:a {:href "#"} "Home"]]
-      [:li
-        [:a {:href "#"} "Teams"]]
-      [:li
-        [:a {:href "#"} "Repositories"]]]])
+      [:li (when (= page :teams) {:class "active"})
+        [:a {:href "teams"} "Teams"]]
+      [:li (when (= page :users) {:class "active"})
+        [:a {:href "users"} "Users"]]
+      [:li (when (= page :realtime) {:class "active"})
+        [:a {:href "realtime"} "Realtime"]]
+      [:li (when (= page :team-leaderboards) {:class "active"})
+        [:a {:href "team-leaderboards"} "Team Leaderboards"]]
+      [:li (when (= page :user-leaderboards) {:class "active"})
+        [:a {:href "user-leaderboards"} "User Leaderboards"]]
+      [:li (when (= page :query-builder) {:class "active"})
+        [:a {:href "query-builder"} "Query"]]]])
 
 (defn realtime-graphs []
   [:div 
@@ -23,18 +29,21 @@
     [:div#spline-adds-author {:style "width 100%; height:400px;"}]
     [:div#pie-adds-author {:style "min-width: 310px; height: 400px; margin: 0 auto;"}]])
 
-(defn normal-graphs []
+(defn team-graphs []
   [:div 
     [:div#spline-commits {:style "width 100%; height:400px;"}]
     [:div#pie-commits {:style "min-width: 310px; height: 400px; margin: 0 auto;"}]
     [:div#spline-adds {:style "width 100%; height:400px;"}]
-    [:div#pie-adds {:style "min-width: 310px; height: 400px; margin: 0 auto;"}]
+    [:div#pie-adds {:style "min-width: 310px; height: 400px; margin: 0 auto;"}]])
+
+(defn user-graphs []
+  [:div
     [:div#spline-commits-author {:style "width 100%; height:400px;"}]
     [:div#pie-commits-author {:style "min-width: 310px; height: 400px; margin: 0 auto;"}]
     [:div#spline-adds-author {:style "width 100%; height:400px;"}]
     [:div#pie-adds-author {:style "min-width: 310px; height: 400px; margin: 0 auto;"}]])
 
-(defn overview [teams realtime?]
+(defn overview [realtime? author? page]
   (html
     [:html
       [:head
@@ -43,26 +52,29 @@
         [:script {:src "bootstrap/js/bootstrap.min.js"}]
         [:script {:src "http://code.highcharts.com/highcharts.js"}]
         [:link {:href "css/hackviz.css" :rel "stylesheet" :media "screen"}]
-        (if realtime? 
-          [:script {:src "js/hackviz-realtime.js"}]
-          [:script {:src "js/hackviz.js"}])
+        (cond
+          realtime? [:script {:src "js/hackviz-realtime.js"}]
+          author? [:script {:src "js/hackviz-users.js"}]
+          :else [:script {:src "js/hackviz-teams.js"}])
         [:script {:src "js/moment.min.js"}]]
       [:body
-        (nav-bar)
+        (nav-bar page)
         [:div.btn-group
           [:button.btn.btn-default.dropdown-toggle {:type "button" :data-toggle "dropdown"} "All Teams"
-            [:span.caret]]
-          [:ul.dropdown-menu
-            (map team-link (set teams))]]
-        (if realtime?
-          (realtime-graphs)
-          (normal-graphs))]]))
+            [:span.caret]]]
+        (cond 
+          realtime? (realtime-graphs)
+          author? (user-graphs)
+          :else (team-graphs))]]))
 
-(defn page [teams]
-  (overview teams false))
+(defn team-page []
+  (overview false false :teams))
 
-(defn realtime-page [teams]
-  (overview teams true))
+(defn user-page []
+  (overview false true :users))
+
+(defn realtime-page []
+  (overview true false :realtime))
 
 (def match-entities ["author","team","repo","additions","deletions"])
 (def match-operators ["=","!=","<","<=",">",">="])
@@ -116,7 +128,7 @@
         [:script {:src "js/query-builder.js"}]
         [:script {:src "js/moment.min.js"}]]
       [:body
-        (nav-bar)
+        (nav-bar :query-builder)
         [:div.container
           [:div.row
             (wg [:label "Match: "])
@@ -135,3 +147,34 @@
           [:div.row
             [:button#go-btn.btn.btn-primary {:type "button"} "Run Query"]]]
         [:div#dynamic-graph {:style "width 100%; height:400px;"}]]]))
+
+(defn render-row [[name value]]
+  [:tr
+    [:td name]
+    [:td value]])
+
+(defn render-table [leaders msg]
+  [:table.table.table-striped
+    [:thead
+      [:tr
+        [:th "Name"]
+        [:th msg]]]
+    [:tbody
+      (map render-row leaders)]])
+
+(defn leaderboards [commit-leaders code-leaders page]
+  (html
+    [:html
+      [:head
+        [:link {:href "bootstrap/css/bootstrap.min.css" :rel "stylesheet" :media "screen"}]
+        [:script {:src "http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"}]
+        [:script {:src "bootstrap/js/bootstrap.min.js"}]
+        [:script {:src "http://code.highcharts.com/highcharts.js"}]
+        [:link {:href "css/hackviz.css" :rel "stylesheet" :media "screen"}]
+        [:script {:src "js/moment.min.js"}]]
+      [:body
+        (nav-bar page)
+        [:h2 "Commits"]
+        (render-table commit-leaders "Commits")
+        [:h2 "Lines of Code"]
+        (render-table code-leaders "Lines of Code")]]))

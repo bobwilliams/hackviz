@@ -21,8 +21,14 @@
     (println "Adding " (count commit-events) " to " (:name @repo))
     (when (seq commit-events)
         (turbine/add-commit-events commit-events)
-        (let [newest-ts (newest-timestamp commit-events)]
-          (update-repo-atom repo {:ts newest-ts})))))
+        (update-repo-atom repo {:ts (System/currentTimeMillis)}))))
+        ;(let [newest-ts (newest-timestamp commit-events)]
+        ;  (update-repo-atom repo {:ts newest-ts})))))
+
+(defn try-update-repo [repo]
+  (try
+    (update-repo repo)
+    (catch java.lang.Throwable t (println "Error Updating Repo: " repo))))
 
 (defn schedule-continual-updates [repo]
-  (at/every @g/update-delay #(update-repo repo) g/scheduler-pool :initial-delay 1000))
+  (at/every @g/update-delay #(try-update-repo repo) g/scheduler-pool :initial-delay 5000))
