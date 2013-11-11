@@ -1,34 +1,23 @@
 {
-    "mode": "dev",
+    "mode": "prod",
     "realtime-enabled": false,
     "buffer-count": 100,
-    "github-token": "cd7c8f4b0a791361f9b858ed22b6a7a33912ec9c",
-    "github-pubsub-secret": "21908ca9-c372-47ed-aebe-cbf35fd062c5",
+    "github-token": "<Github Oauth Token Here>",
+    "github-pubsub-secret": "<Random Generated Secret>",
     "turbinedb-url": "http://localhost:8080",
     "turbinedb-database": "hackviz",
     "turbinedb-collection": "commits",
-    "update-delay": 120000,
-    "server-base": "http://hackviz.com",
+    "update-delay": 60000,
+    "server-base": "http://localhost:8080",
     "server-port": 9000,
     "check-api-calls-delay": 1000,
-    "orgs": [{
-        "name": "sparcedge"
-    }],
     "repos": [{
-        "name": "turbine-db",
-        "owner": "gilbertw1",
-        "team": "Sparc IQ"
+        "name": "repo1",
+        "owner": "myOrganization",
+        "team": "team-awesome"
     },{
-        "name": "turbine-blade",
-        "owner": "sparcedge",
-        "team": "Sparc IQ"
-    },{
-        "name": "turbine-cache-generator",
-        "owner": "sparcedge",
-        "team": "Sparc IQ"
-    },{
-        "name": "CrowdFlik-API",
-        "owner": "sparcedge",
-        "team": "Mobile Team"
+        "name": "repo2",
+        "owner": "otherOrganization",
+        "team": "other-team"
     }]
 }
