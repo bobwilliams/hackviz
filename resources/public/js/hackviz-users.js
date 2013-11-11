@@ -1,9 +1,3 @@
-Highcharts.setOptions({
-    global: {
-        useUTC: false
-    }
-});
-
 var createHourData = function(field) {
     return function(hourResults) {
         return [
@@ -34,8 +28,9 @@ var createPieData = function(teamSeries) {
 };
 
 $(function () {
-    $.getJSON('commits?metrics=repo:count&groups=author,minute', function(data) {
-        var series = data.map(createTeamData("repo-count"));
+    var authorCommitQuery = makeQuery([], [createSegmentGroup("author"), createDurationGroup("minute")], [createReducer("repo","count")])
+    $.getJSON('query?q=' + toEncodedJson(authorCommitQuery), function(data) {
+        var series = data.results.map(createTeamData("repo-count"));
         var pieSeries = series.map(createPieData);
 
         $('#spline-commits-author').highcharts({
@@ -89,8 +84,10 @@ $(function () {
             }]
         });
     });
-    $.getJSON('commits?metrics=additions:sum&groups=author,minute', function(data) {
-        var series = data.map(createTeamData("additions-sum"));
+
+    var authorAdditionsQuery = makeQuery([], [createSegmentGroup("author"),createDurationGroup("minute")], [createReducer("additions","sum")])
+    $.getJSON('query?q=' + toEncodedJson(authorAdditionsQuery), function(data) {
+        var series = data.results.map(createTeamData("additions-sum"));
         var pieSeries = series.map(createPieData);
 
         $('#spline-adds-author').highcharts({

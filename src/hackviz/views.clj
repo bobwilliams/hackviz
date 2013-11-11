@@ -22,6 +22,18 @@
       [:li (when (= page :query-builder) {:class "active"})
         [:a {:href "query-builder"} "Query"]]]])
 
+(defn common-head [title & extras]
+  [:head
+    [:title title]
+    [:link {:href "/static/bootstrap/css/bootstrap.min.css" :rel "stylesheet" :media "screen"}]
+    [:script {:src "http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"}]
+    [:script {:src "/static/bootstrap/js/bootstrap.min.js"}]
+    [:script {:src "http://code.highcharts.com/highcharts.js"}]
+    [:link {:href "/static/css/hackviz.css" :rel "stylesheet" :media "screen"}]
+    [:script {:src "/static/js/turbine.js"}]
+    [:script {:src "/static/js/moment.min.js"}]
+    extras])
+
 (defn realtime-graphs []
   [:div 
     [:div#spline-adds {:style "width 100%; height:400px;"}]
@@ -46,17 +58,11 @@
 (defn overview [realtime? author? page]
   (html
     [:html
-      [:head
-        [:link {:href "bootstrap/css/bootstrap.min.css" :rel "stylesheet" :media "screen"}]
-        [:script {:src "http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"}]
-        [:script {:src "bootstrap/js/bootstrap.min.js"}]
-        [:script {:src "http://code.highcharts.com/highcharts.js"}]
-        [:link {:href "css/hackviz.css" :rel "stylesheet" :media "screen"}]
-        (cond
-          realtime? [:script {:src "js/hackviz-realtime.js"}]
-          author? [:script {:src "js/hackviz-users.js"}]
-          :else [:script {:src "js/hackviz-teams.js"}])
-        [:script {:src "js/moment.min.js"}]]
+      (common-head "HackViz" 
+                   (cond
+                     realtime? [:script {:src "/static/js/hackviz-realtime.js"}]
+                     author? [:script {:src "/static/js/hackviz-users.js"}]
+                     :else [:script {:src "/static/js/hackviz-teams.js"}]))
       [:body
         (nav-bar page)
         [:div.btn-group
@@ -86,29 +92,18 @@
 (def reduce-operators ["count","min","max","sum","avg","stdev"])
 
 (defn dropdown-item [item]
-  [:li {:role "presentation"}
-    [:a {:role "menuitem" :tabindex "-1" :href "#"} item]])
-
-(defn dropdown 
-  ([items] (dropdown (rest items) (first items)))
-  ([items default]
-    [:div.dropdown
-      [:ul.dropdown-menu {:role "menu" :aria-labelledby "dropdownMenu1"}
-        (map dropdown-item (cons default items))]]))
-
-(defn dropdown-item-simple [item]
   [:option {:value item} item])
 
-(defn dropdown-item-simple-default [item]
+(defn dropdown-item-default [item]
   [:option {:value item :selected "selected"} item])
 
-(defn dropdown-simple
-  ([items id] (dropdown-simple (rest items) (first items) id))
+(defn dropdown
+  ([items id] (dropdown (rest items) (first items) id))
   ([items default id]
     [:select.query-select.form-control {:id id}
       (cons 
-        (dropdown-item-simple-default default)
-        (map dropdown-item-simple items))]))
+        (dropdown-item-default default)
+        (map dropdown-item items))]))
 
 (defn input [label]
   [:input#match-val.query-input.form-control {:type "text" :placeholder label}])
@@ -116,37 +111,47 @@
 (defn wg [el]
   [:div.col-lg-2 el])
 
-(defn query-builder []
+(defn el-header [txt]
+  [:h3 {:style "float: none; margin-left: auto; margin-right: auto;"} txt])
+
+(def match-operators ["=" "!=" "<" "<=" ">" ">="])
+(def group-times ["year" "month" "day" "hour" "minute"])
+(def reduce-operators ["count" "min" "max" "sum" "avg" "stdev"])
+(def commit-segments ["owner" "author" "team" "repo" "additions" "deletions"])
+
+(defn query-builder [segments]
   (html
     [:html
-      [:head
-        [:link {:href "bootstrap/css/bootstrap.min.css" :rel "stylesheet" :media "screen"}]
-        [:script {:src "http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"}]
-        [:script {:src "bootstrap/js/bootstrap.min.js"}]
-        [:script {:src "http://code.highcharts.com/highcharts.js"}]
-        [:link {:href "css/hackviz.css" :rel "stylesheet" :media "screen"}]
-        [:script {:src "js/query-builder.js"}]
-        [:script {:src "js/moment.min.js"}]]
+      (common-head "Query Builder" [:script {:src "/static/js/query-builder.js"}])
       [:body
         (nav-bar :query-builder)
         [:div.container
           [:div.row
             (wg [:label "Match: "])
-            (wg (dropdown-simple match-entities "none" "match-entities"))
-            (wg (dropdown-simple match-operators "none" "match-ops"))
+            (wg (dropdown segments "none" "match-entities"))
+            (wg (dropdown match-operators "none" "match-ops"))
             (wg (input "value"))]
           [:div.row
             (wg [:label "Group (Segment)"])
-            (wg (dropdown-simple group-entities "none" "group-entities"))
+            (wg (dropdown segments "none" "group-entities"))
             (wg [:label "Group (Time)"])
-            (wg (dropdown-simple group-times "group-times"))]
+            (wg (dropdown group-times "group-times"))]
           [:div.row
             (wg [:label "Reduce"])
-            (wg (dropdown-simple reduce-entities "reduce-entities"))
-            (wg (dropdown-simple reduce-operators "reduce-ops"))]
+            (wg (dropdown segments "reduce-entities"))
+            (wg (dropdown reduce-operators "reduce-ops"))]
           [:div.row
             [:button#go-btn.btn.btn-primary {:type "button"} "Run Query"]]]
-        [:div#dynamic-graph {:style "width 100%; height:400px;"}]]]))
+        [:div {:style "text-align: center;"}
+          (el-header "Graph")
+          [:div#dynamic-graph {:style "width 100%; height:400px;"}]
+          (el-header "Query")
+          [:pre#query {:style "text-align: left;"}]
+          (el-header "Results")
+          [:pre#results {:style "text-align: left;"}]]]]))
+
+(defn commit-query-builder []
+  (query-builder commit-segments))
 
 (defn render-row [[name value]]
   [:tr
@@ -165,13 +170,7 @@
 (defn leaderboards [commit-leaders code-leaders page]
   (html
     [:html
-      [:head
-        [:link {:href "bootstrap/css/bootstrap.min.css" :rel "stylesheet" :media "screen"}]
-        [:script {:src "http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"}]
-        [:script {:src "bootstrap/js/bootstrap.min.js"}]
-        [:script {:src "http://code.highcharts.com/highcharts.js"}]
-        [:link {:href "css/hackviz.css" :rel "stylesheet" :media "screen"}]
-        [:script {:src "js/moment.min.js"}]]
+      (common-head "Leaderboard")
       [:body
         (nav-bar page)
         [:h2 "Commits"]

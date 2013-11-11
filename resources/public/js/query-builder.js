@@ -8,7 +8,8 @@ var buildQuery = function() {
     var matches = getMatches();
     var groups = getGroups();
     var reducers = getReducers();
-    return makeQuery(matches, groups, reducers);
+    var query = makeQuery(matches, groups, reducers);
+    return toEncodedJson(query);
 }
 
 var getTimeString = function(timeValue) {
@@ -41,12 +42,7 @@ var first = function(obj) {
 
 var createTimeData = function() {
     return function(timeResults) {
-        var res;
-
-        res = timeResults.data[0].data[0];
-
-        console.log(timeResults);
-
+        var res = timeResults.data[0].data[0];
         return [
             moment(timeResults.group, getTimeString(timeValue())).unix()*1000,
             first(res)
@@ -63,11 +59,26 @@ var createGroupedData = function() {
     };
 };
 
+var updateQueryBlock = function(query) {
+    var json = JSON.stringify(query, undefined, 2)
+    $("#query").text(json);
+};
+
+var updateResultsBlock = function(results) {
+    var json = JSON.stringify(results, undefined, 2)
+    $("#results").text(json);
+};
+
 var renderGraph = function() {
     var query = buildQuery();
 
-    $.getJSON('commits?'+query, function(data) {
+    $.getJSON('/query?q='+ query, function(res) {
         var series;
+        var data = res.results;
+        var query = res.query;
+
+        updateQueryBlock(query);
+        updateResultsBlock(data);
 
         if(selected($("#group-entities")) === "none") {
             series = [{
@@ -101,10 +112,6 @@ var renderGraph = function() {
     });
 }
 
-var makeQuery = function(matches, groups, reducers) {
-    return "groups="+groups+"&metrics="+reducers+"&"+matches;
-}
-
 var matchOp = function() {
     var op = selected($("#match-ops"));
     if(op === "=") {
@@ -120,25 +127,37 @@ var matchOp = function() {
     } else if(op === "!=") {
         return "ne";
     }
-}
+};
 
 var getMatches = function() {
-    return selected($("#match-entities"))+"="+matchOp()+":"+$("#match-val").val();
-}
+    var entity = selected($("#match-entities"))
+    if(entity === "none") {
+        return [];
+    } else {
+        return [createMatch(entity, matchOp(), $("#match-val").val())];
+    }
+};
 
 var getGroups = function() {
     var entity = selected($("#group-entities"));
     var time = selected($("#group-times"))
-    if(entity === "none") {
-        return time;
+    var durationGroup = createDurationGroup(time);
+    var groups = null;
+
+    if(entity !== "none") {
+        groups = [createSegmentGroup(entity), durationGroup]
     } else {
-        return entity+","+time;
+        groups = [durationGroup]
     }
-}
+
+    return groups;
+};
 
 var getReducers = function() {
-    var reduceEntity = selected($("#reduce-entities"));
-    var entity = reduceEntity === "commit" ? "repo" : reduceEntity;
-
-    return entity+":"+selected($("#reduce-ops"));
-}
+    var entity = selected($("#reduce-entities"));
+    if(entity === "commit") {
+        entity = "repo";
+    }
+    var op = selected($("#reduce-ops"));
+    return [createReducer(entity, op)];
+};

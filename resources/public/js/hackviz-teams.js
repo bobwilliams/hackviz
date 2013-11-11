@@ -28,8 +28,9 @@ var createPieData = function(teamSeries) {
 };
 
 $(function () {
-    $.getJSON('commits?metrics=repo:count&groups=team,minute', function(data) {
-        var series = data.map(createTeamData("repo-count"));
+    var teamCommitsQuery = makeQuery([], [createSegmentGroup("team"), createDurationGroup("minute")], [createReducer("repo","count")])
+    $.getJSON('query?q=' + toEncodedJson(teamCommitsQuery), function(data) {
+        var series = data.results.map(createTeamData("repo-count"));
         var pieSeries = series.map(createPieData);
 
         $('#spline-commits').highcharts({
@@ -82,8 +83,10 @@ $(function () {
             }]
         });
     });
-    $.getJSON('commits?metrics=additions:sum&groups=team,minute', function(data) {
-        var series = data.map(createTeamData("additions-sum"));
+
+    var teamAdditionsQuery = makeQuery([], [createSegmentGroup("team"), createDurationGroup("minute")], [createReducer("additions","sum")])
+    $.getJSON('query?q=' + toEncodedJson(teamAdditionsQuery), function(data) {
+        var series = data.results.map(createTeamData("additions-sum"));
         var pieSeries = series.map(createPieData);
 
         $('#spline-adds').highcharts({

@@ -1,20 +1,30 @@
 (ns hackviz.turbine
   (:require [clj-http.client :as client]
-            [clojure.string :as string]
+            [clojure.string :as str]
             [cheshire.core :as json]
-            [hackviz.github :as gh]
             [hackviz.global :as g]
             [clj-time.coerce :refer :all]))
 
-(defn coll-url [db coll]
-  (str @g/turbinedb-url "/db/" db "/" coll))
+(defn base-url []
+  (str @g/turbinedb-url "/db"))
 
-(defn query [q db coll]
-  (let [q-json (json/generate-string q)
-        url (coll-url db coll)
-        res (client/get url {:query-params {"q" q-json}})
-        body (:body res)]
-    (json/parse-string body true)))
+(defn db-url [db]
+  (str (base-url) "/" db))
+
+(defn coll-url [db coll]
+  (str (db-url db) "/" coll))
+
+(defn retrieve-meta [url]
+  (-> url client/get :body (json/parse-string true)))
+
+(defn get-databases []
+  (retrieve-meta (base-url)))
+
+(defn get-collections [db]
+  (retrieve-meta (db-url db)))
+
+(defn get-segments [db coll]
+  (retrieve-meta (coll-url db coll)))
 
 (defn insert-event [commit-event db coll]
   (let [event {:timestamp (:time commit-event), :data commit-event}
@@ -25,80 +35,50 @@
 (defn add-commit-events [events]
   (doseq [e events] (insert-event e @g/turbinedb-database @g/turbinedb-collection)))
 
+(defn query [q db coll]
+  (let [q-json (json/generate-string q)
+        url (coll-url db coll)
+        res (client/get url {:query-params {"q" q-json}})
+        body (:body res)]
+    (json/parse-string body true)))
+
 (defn query-commits [q]
   (query q @g/turbinedb-database @g/turbinedb-collection))
 
-(defn checkpoint [{:keys [name owner]}]
-  )
-
-(defn split-match [m]
-  (let [[k v] (string/split m #":")]
-    {k v}))
-
-(defn create-matches [criteria]
-  (conj (map (fn [[k v]] {k (split-match v)}) criteria) {"author" {:ne "dostraco"}}))
-
-(defn get-first [key results]
-  (-> results first :data first :data first key))
-
-(defn create-query [matches groups reduces start end]
-  (merge
-    {:match (create-matches matches) :group groups :reduce reduces}
-    (when start {:start start})
-    (when end {:end end})))
-  
-
 (defn newest-commit-ts [owner repo]
-  (let [matches (create-matches {:owner (str "eq:" owner) :repo (str "eq:" repo)})
+  (let [matches [{:owner {:eq owner}} {:repo {:eq repo}}]
         q {:match matches :reduce [{:newest {:max "time"}}]}
         results (query-commits q)
         ts-dbl (-> results first :data first :data first :newest)]
     (long (or ts-dbl 0))))
 
-(defn valid-reducer? [[k v]]
-  (and
-    (contains? #{"time" "owner" "author" "team" "repo" "additions" "deletions"} k)
-    (contains? #{"min" "max" "avg" "count" "sum"} v)))
+(def str-operators #{"eq" "neq"})
 
-(defn convert-reducer [[k v]]
-  {(str k "-" v) {v k}})
+(defn parse-double [s]
+  (Double/parseDouble s))
 
-(defn get-reducers [params]
-  (if (:metrics params)
-    (as-> params m
-          (:metrics m)
-          (string/split m #",")
-          (map #(string/split % #":") m)
-          (filter valid-reducer? m)
-          (map convert-reducer m))))
+(defn convert-dbl [match]
+  (let [[seg expr] (first match)
+        [op value] (first expr)
+        new-value (if (str-operators op) value (parse-double value))]
+    {seg {op new-value}}))
 
-(defn convert-group [group]
-  (cond (contains? #{"minute" "hour" "day" "month" "year"} group) {"duration" group}
-        (contains? #{"owner" "author" "team" "repo"} group) {"segment" group}
-        :else nil))
+(defn validate-query [query]
+  (let [updated (assoc query :match (->> query :match (map convert-dbl)))]
+    updated))
 
-(defn get-groups [params]
-  (if (:groups params)
-    (as-> params g
-          (:groups g)
-          (string/split g #",")
-          (map convert-group g)
-          (remove nil? g))))
-
-(defn valid-filter? [[k v]]
-  (contains? #{:repo :owner :author :team} k))
-
-(defn get-filters [params]
-  (filter valid-filter? params))
+(defn create-valid-query [query start end]
+  (merge
+    (validate-query query)
+    (when start {:start start})
+    (when end {:end end})))
 
 (defn long-or-nil [str]
   (when str
     (Long/parseLong str)))
 
-(defn create-query-from-params [params]
-  (let [filters (get-filters params)
-        groups (get-groups params)
-        reducers (get-reducers params)
-        start (-> params :start long-or-nil)
-        end (-> params :end long-or-nil)]
-    (create-query filters groups reducers start end)))
+(defn create-query-from-params [{:keys [q start end]}]
+  (let [query (json/parse-string q true)
+        start (long-or-nil start)
+        end (long-or-nil end)]
+    (create-valid-query query start end)))
