@@ -5,7 +5,8 @@
             [hackviz.global :as g]))
 
 (defn new-commit-events-for-repo [{:keys [name owner team ts]}]
-  (gh/commit-events-since owner team name (+ ts 1000)))
+  (let [timestamp (or ts 0)]
+    (gh/commit-events-since owner team name (+ ts 1000))))
 
 (defn update-repo-atom [repo values]
   (swap! repo #(merge % values)))
@@ -17,14 +18,12 @@
 
 (defn update-repo [repo]
   (when (gh/should-make-call?)
-    (when-let [commit-events (new-commit-events-for-repo @repo)]
-      (println "Adding " (count commit-events) " new events to " (:name @repo))
-      ;(println (:time (first commit-events)) " -- " (:time (last commit-events)))
-      (turbine/add-commit-events commit-events)
-      (let [newest-ts (newest-timestamp commit-events)]
-        (update-repo-atom repo {:ts newest-ts})))))
-
-;(update-repo-atom repo {:ts (System/currentTimeMillis)}))))
+    (let [commit-events (new-commit-events-for-repo @repo)]
+      (when (seq commit-events)
+        (println "Adding " (count commit-events) " new events to " (:name @repo))
+        (turbine/add-commit-events commit-events)
+        (let [newest-ts (newest-timestamp commit-events)]
+          (update-repo-atom repo {:ts newest-ts}))))))
 
 (defn try-update-repo [repo]
   (try

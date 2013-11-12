@@ -15,6 +15,8 @@
         [:a {:href "users"} "Users"]]
       [:li (when (= page :realtime) {:class "active"})
         [:a {:href "realtime"} "Realtime"]]
+      [:li (when (= page :commit-feed) {:class "active"})
+        [:a {:href "commit-feed"} "Commit Feed"]]
       [:li (when (= page :team-leaderboards) {:class "active"})
         [:a {:href "team-leaderboards"} "Team Leaderboards"]]
       [:li (when (= page :user-leaderboards) {:class "active"})
@@ -55,7 +57,13 @@
     [:div#spline-adds-author {:style "width 100%; height:400px;"}]
     [:div#pie-adds-author {:style "min-width: 310px; height: 400px; margin: 0 auto;"}]])
 
-(defn overview [realtime? author? page]
+(defn dropdown-menu-item [entity]
+  [:li [:a {:href "#" :onclick (str "renderAll(\"" entity "\")")} entity]])
+
+(defn dropdown-menu [entities]
+  [:ul.dropdown-menu {:role "menu"} (map dropdown-menu-item entities)])
+
+(defn overview [realtime? author? page teams]
   (html
     [:html
       (common-head "HackViz" 
@@ -65,22 +73,32 @@
                      :else [:script {:src "/static/js/hackviz-teams.js"}]))
       [:body
         (nav-bar page)
-        [:div.btn-group
-          [:button.btn.btn-default.dropdown-toggle {:type "button" :data-toggle "dropdown"} "All Teams"
-            [:span.caret]]]
+        (when teams
+          [:div.btn-group
+            [:button.btn.btn-default.dropdown-toggle {:type "button" :data-toggle "dropdown"} "All Teams"
+              [:span.caret]]
+            (dropdown-menu teams)])
         (cond 
           realtime? (realtime-graphs)
           author? (user-graphs)
           :else (team-graphs))]]))
 
-(defn team-page []
-  (overview false false :teams))
+(defn team-page [teams]
+  (overview false false :teams teams))
 
-(defn user-page []
-  (overview false true :users))
+(defn user-page [teams]
+  (overview false true :users teams))
 
 (defn realtime-page []
-  (overview true false :realtime))
+  (overview true false :realtime nil))
+
+(defn commit-feed []
+  (html
+    [:html
+     (common-head "HackViz" [:script {:src "/static/js/hackviz-feed.js"}])
+     [:body
+       (nav-bar :commit-feed)
+       [:div#commits]]]))
 
 (def match-entities ["author","team","repo","additions","deletions"])
 (def match-operators ["=","!=","<","<=",">",">="])

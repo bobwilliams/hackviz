@@ -83,13 +83,17 @@
 (defn team-code-leaders []
   (leaders "team" ["additions" "sum"]))
 
+(defn get-teams []
+  (set (map #(:team @%) @g/repositories)))
+
 (defroutes routes
   (GET "/alo" [] "alo guvna")
   (GET "/query" {params :params} (-> params query-turbine json/generate-string))
-  (GET "/" [] (views/team-page))
-  (GET "/teams" [] (views/team-page))
-  (GET "/users" [] (views/user-page))
+  (GET "/" [] (views/team-page (get-teams)))
+  (GET "/teams" [] (views/team-page (get-teams)))
+  (GET "/users" [] (views/user-page (get-teams)))
   (GET "/realtime" [] (views/realtime-page))
+  (GET "/commit-feed" [] (views/commit-feed))
   (GET "/event-stream" [] register-event-listener)
   (GET "/query-builder" [] (views/commit-query-builder))
   (GET "/team-leaderboards" [] (views/leaderboards (team-commit-leaders) (team-code-leaders) :team-leaderboards))

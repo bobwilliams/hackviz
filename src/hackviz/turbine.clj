@@ -52,7 +52,7 @@
         ts-dbl (-> results first :data first :data first :newest)]
     (long (or ts-dbl 0))))
 
-(def str-operators #{"eq" "neq"})
+(def str-operators #{:eq :neq})
 
 (defn parse-double [s]
   (Double/parseDouble s))

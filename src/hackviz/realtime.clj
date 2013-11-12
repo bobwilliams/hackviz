@@ -5,7 +5,9 @@
             [hackviz.github :as gh]))
 
 (defn convert-event [commit {:keys [owner team name]}]
-  (assoc (gh/convert-event commit owner team name) :msg (:message commit) :ts (System/currentTimeMillis)))
+  (assoc (gh/convert-event commit owner team name) :msg (:message commit) 
+                                                   :ts (System/currentTimeMillis) 
+                                                   :avatar-url (gh/get-cache-avatar (-> commit :author :login))))
 
 (defn get-repo [{{name :name} :repository}]
   (first (filter #(= name (:name @%)) @g/repositories))) ;; Todo: Verify Owners
@@ -17,13 +19,13 @@
   (doseq [listener @g/event-listeners]
     (send-to-listener listener events)))
 
-(defn take-amount [lst cnt]
+(defn limit [lst cnt]
   (if (> (count lst) cnt)
     (drop (- (count lst) cnt) lst)
     lst))
 
 (defn buffer [events]
-  (swap! g/event-buffer #(concat (take-amount % @g/buffer-count) events)))
+  (swap! g/event-buffer #(-> % (concat events) (limit @g/buffer-count))))
 
 (defn handle-github-callback [callback]
   (when-let [repo (get-repo callback)]

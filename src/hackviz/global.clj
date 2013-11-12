@@ -16,6 +16,7 @@
 (def buffer-count (atom 100))
 (def api-calls-left (atom 0))
 (def check-api-calls-delay (atom 1000))
+(def author-avatars (atom {}))
 
 (defn update-atom [atom value]
   (if value (reset! atom value)))

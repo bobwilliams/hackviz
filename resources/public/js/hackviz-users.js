@@ -27,8 +27,16 @@ var createPieData = function(teamSeries) {
     ];
 };
 
-$(function () {
-    var authorCommitQuery = makeQuery([], [createSegmentGroup("author"), createDurationGroup("minute")], [createReducer("repo","count")])
+var createMatches = function(team) {
+    if(team && !(team === "All Teams")) {
+        return [createMatch("team", "eq", team)];
+    } else {
+        return [];
+    }
+};
+
+var renderAuthorCommits = function(team) {
+    var authorCommitQuery = makeQuery(createMatches(team), [createSegmentGroup("author"), createDurationGroup("minute")], [createReducer("repo","count")])
     $.getJSON('query?q=' + toEncodedJson(authorCommitQuery), function(data) {
         var series = data.results.map(createTeamData("repo-count"));
         var pieSeries = series.map(createPieData);
@@ -84,8 +92,10 @@ $(function () {
             }]
         });
     });
+};
 
-    var authorAdditionsQuery = makeQuery([], [createSegmentGroup("author"),createDurationGroup("minute")], [createReducer("additions","sum")])
+var renderAuthorAdditions = function(team) {
+    var authorAdditionsQuery = makeQuery(createMatches(team), [createSegmentGroup("author"),createDurationGroup("minute")], [createReducer("additions","sum")])
     $.getJSON('query?q=' + toEncodedJson(authorAdditionsQuery), function(data) {
         var series = data.results.map(createTeamData("additions-sum"));
         var pieSeries = series.map(createPieData);
@@ -141,4 +151,13 @@ $(function () {
             }]
         });
     });
+};
+
+var renderAll = function(team) {
+    renderAuthorCommits(team);
+    renderAuthorAdditions(team);
+};
+
+$(function () {
+    renderAll();
 });

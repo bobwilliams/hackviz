@@ -1,5 +1,7 @@
 (ns hackviz.github
   (:require [tentacles.repos :as repos]
+            [tentacles.orgs :as orgs]
+            [tentacles.users :as users]
             [clj-http.client :as client]
             [tentacles.core :as tcore]
             [cheshire.core :as json]
@@ -18,13 +20,28 @@
 (defrecord CommitEvent [time owner author team repo additions deletions])
 
 (defn ts-to-iso [ts]
-  (unparse iso-formatter (from-long ts)))
+  (when ts
+    (unparse iso-formatter (from-long ts))))
 
 (defn iso-to-ts [iso]
-  (to-long (parse iso-formatter iso)))
+  (when iso
+    (to-long (parse iso-formatter iso))))
 
 (defn has-keys? [c]
   (seq (keys c)))
+
+(defn get-avatar [username]
+  (let [user (users/user username (auth))]
+    (if-let [avatar (:avatar_url user)]
+      avatar
+      "https://assets.github.com/images/gravatars/gravatar-140.png")))
+
+(defn get-cache-avatar [username]
+  (if-let [avatar (get @g/author-avatars username)] 
+    avatar
+    (let [new-avatar (get-avatar username)]
+      (swap! g/author-avatars assoc username new-avatar)
+      new-avatar)))
 
 (defn get-rate-limit-remaining []
   (-> (tcore/rate-limit (auth)) :rate :remaining)) ;; TODO: Error Handling
@@ -50,7 +67,7 @@
   (repos/specific-commit owner repo (commit-sha commit) (auth)))
 
 (defn get-date [commit-details]
-  (or 
+  (or
     (-> commit-details :commit :author :date)
     (-> commit-details :commit :committer :date)))
 
