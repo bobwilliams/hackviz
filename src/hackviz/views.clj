@@ -22,7 +22,10 @@
       [:li (when (= page :user-leaderboards) {:class "active"})
         [:a {:href "user-leaderboards"} "User Leaderboards"]]
       [:li (when (= page :query-builder) {:class "active"})
-        [:a {:href "query-builder"} "Query"]]]])
+        [:a {:href "query-builder"} "Query"]]]
+    [:ul.nav.navbar-nav.navbar-right
+      [:li
+        [:img.logo-img {:src "/static/images/sparc-logo.png"}]]]])
 
 (defn common-head [title & extras]
   [:head
