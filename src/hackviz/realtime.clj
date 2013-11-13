@@ -43,4 +43,4 @@
   (prn "Registering event listener!")
   (swap! g/event-listeners #(conj % con))
   (on-close-handler con)
-  (send-to-listener con @g/event-buffer))
+  (send-to-listener con (reverse @g/event-buffer)))
