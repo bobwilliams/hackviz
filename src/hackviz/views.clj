@@ -98,7 +98,7 @@
      (common-head "HackViz" [:script {:src "/static/js/hackviz-feed.js"}])
      [:body
        (nav-bar :commit-feed)
-       [:div#commits]]]))
+       [:ul.list-group {:id "commits"}]]]))
 
 (def match-entities ["author","team","repo","additions","deletions"])
 (def match-operators ["=","!=","<","<=",">",">="])
