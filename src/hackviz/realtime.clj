@@ -20,13 +20,8 @@
   (doseq [listener @g/event-listeners]
     (send-to-listener listener events)))
 
-(defn limit [lst cnt]
-  (if (> (count lst) cnt)
-    (drop (- (count lst) cnt) lst)
-    lst))
-
 (defn buffer [events]
-  (swap! g/event-buffer #(-> % (concat events) (limit @g/buffer-count))))
+  (swap! g/event-buffer #(->> % (concat events) (take @g/buffer-count))))
 
 (defn handle-github-callback [callback]
   (when-let [repo (get-repo callback)]
