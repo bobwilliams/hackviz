@@ -10,6 +10,7 @@
     "update-delay": 60000,
     "server-base": "http://localhost:9000",
     "server-port": 9000,
+    "check-api-calls-delay": 1000,
     "repos": [{
         "name": "repo1",
         "owner": "myOrganization",

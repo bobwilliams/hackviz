@@ -1,4 +1,4 @@
-h1,
+  h1,
 h2,
 h3,
 h4 {
@@ -13,7 +13,7 @@ h1 {
   margin: 0 0 25px 0;
 }
 .navbar {
-  background-color: #302F2F;
+  background-color: #C4C2C3;
 }
 .container-hackathon {
   margin-top: 50px;
@@ -25,8 +25,13 @@ h1 {
   margin-bottom: 0;
 }
 .navbar-nav li a {
-  color: #C4C2C3;
+  color: #302F2F;
 }
+
+.navbar-nav li.active {
+  background-color: #33A1DE;
+}
+
 .navbar-brand {
   font-family: proxima-nova, sans-serif;
   font-weight: 600;
@@ -49,7 +54,7 @@ h1 {
 }
 .sidebar .nav-list li:hover a,
 .sidebar .nav-list li.active a {
-  background-color: #ff5900;
+  background-color: #33A1DE;
   color: #fff;
 }
 
@@ -59,4 +64,121 @@ h1 {
 
 .query-input {
   
+}
+
+.logo-img {
+  height: 36px;
+  width: 160px;
+  margin-top: 5px;
+  margin-right: 5px;
+}
+
+.avatar-img {
+  height: 80px;
+  width: 80px;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+.commit-author {
+  text-align: center;
+}
+
+.commit-team {
+  text-align: center;
+  font-weight: bold;
+}
+
+.commit-feed-item {
+  margin: 20px;
+  border-width: medium;
+}
+
+.commit-col-header {
+
+}
+
+.row-time-ups-and-downs {
+  text-align: center;
+}
+
+.time-text {
+  padding-top: 25px;
+  text-align: center;
+  font-size: large;
+}
+
+.ups-and-downs {
+  display: inline-block;
+  font-size: large;
+}
+
+.ups {
+  float: left;
+  padding: 15px;
+  color: blue;
+}
+
+.downs {
+  float: left;
+  padding: 15px;
+  color: red;
+}
+
+.ioc-icon {
+  padding-right: 5px;
+}
+ 
+li.new-item {
+  opacity: 0;
+  -webkit-animation: new-item-animation .3s linear forwards;
+  -o-animation: new-item-animation .3s linear forwards;
+  animation: new-item-animation .3s linear forwards
+}
+
+@keyframes new-item-animation {
+  from {
+    opacity: 0;
+    -webkit-transform: scale(0);
+    -ms-transform: scale(0);
+    -o-transform: scale(0);
+    transform: scale(0)
+  }
+
+  to {
+    opacity: 1;
+    -webkit-transform: scale(1);
+    -ms-transform: scale(1);
+    -o-transform: scale(1);
+    transform: scale(1)
+  }
+}
+
+@-webkit-keyframes new-item-animation {
+  from {
+    opacity: 0;
+    -webkit-transform: scale(0);
+    transform: scale(0)
+  }
+
+  to {
+    opacity: 1;
+    -webkit-transform: scale(1);
+    transform: scale(1)
+  }
+}
+
+@-o-keyframes new-item-animation {
+  from {
+    opacity: 0;
+    -o-transform: scale(0);
+    transform: scale(0)
+  }
+
+  to {
+    opacity: 1;
+    -o-transform: scale(1);
+    transform: scale(1)
+  }
 }

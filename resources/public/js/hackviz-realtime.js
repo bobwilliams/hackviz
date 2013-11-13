@@ -1,10 +1,10 @@
-Highcharts.setOptions({
-    global: {
-        useUTC: false
-    }
-});
-
 $(function () {
+
+    Highcharts.setOptions({
+        global: {
+            useUTC: false
+        }
+    });
 
     $('#spline-adds').highcharts({
         chart: {

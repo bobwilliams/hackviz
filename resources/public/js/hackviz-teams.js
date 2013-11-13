@@ -27,9 +27,18 @@ var createPieData = function(teamSeries) {
     ];
 };
 
-$(function () {
-    $.getJSON('commits?metrics=repo:count&groups=team,minute', function(data) {
-        var series = data.map(createTeamData("repo-count"));
+var createMatches = function(team) {
+    if(team && !(team === "All Teams")) {
+        return [createMatch("team", "eq", team)];
+    } else {
+        return [];
+    }
+};
+
+var renderTeamCommits = function(team) {
+    var teamCommitsQuery = makeQuery(createMatches(team), [createSegmentGroup("team"), createDurationGroup("minute")], [createReducer("repo","count")])
+    $.getJSON('query?q=' + toEncodedJson(teamCommitsQuery), function(data) {
+        var series = data.results.map(createTeamData("repo-count"));
         var pieSeries = series.map(createPieData);
 
         $('#spline-commits').highcharts({
@@ -82,8 +91,12 @@ $(function () {
             }]
         });
     });
-    $.getJSON('commits?metrics=additions:sum&groups=team,minute', function(data) {
-        var series = data.map(createTeamData("additions-sum"));
+};
+
+var renderTeamAdditions = function(team) {
+    var teamAdditionsQuery = makeQuery(createMatches(team), [createSegmentGroup("team"), createDurationGroup("minute")], [createReducer("additions","sum")])
+    $.getJSON('query?q=' + toEncodedJson(teamAdditionsQuery), function(data) {
+        var series = data.results.map(createTeamData("additions-sum"));
         var pieSeries = series.map(createPieData);
 
         $('#spline-adds').highcharts({
@@ -136,4 +149,18 @@ $(function () {
             }]
         });
     });
+};
+
+var renderAll = function(team) {
+    renderTeamCommits(team);  
+    renderTeamAdditions(team);
+};
+
+$(function () {
+    Highcharts.setOptions({
+        global: {
+            useUTC: false
+        }
+    });
+    renderAll();
 });
