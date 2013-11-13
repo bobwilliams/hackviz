@@ -157,5 +157,10 @@ var renderAll = function(team) {
 };
 
 $(function () {
+    Highcharts.setOptions({
+        global: {
+            useUTC: false
+        }
+    });
     renderAll();
 });

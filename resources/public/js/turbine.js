@@ -23,7 +23,7 @@ var createReducer = function(entity, op) {
 };
 
 var createDurationGroup = function(duration) {
-    return {duration: duration};
+    return {duration: duration, offset: 5};
 };
 
 var createSegmentGroup = function(segment) {

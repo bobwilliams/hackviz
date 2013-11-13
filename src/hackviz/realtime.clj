@@ -5,9 +5,10 @@
             [hackviz.github :as gh]))
 
 (defn convert-event [commit {:keys [owner team name]}]
-  (assoc (gh/convert-event commit owner team name) :msg (:message commit) 
-                                                   :ts (System/currentTimeMillis) 
-                                                   :avatar-url (gh/get-cache-avatar (-> commit :author :login))))
+  (let [commit-event (gh/convert-event commit owner team name)]
+    (assoc commit-event :msg (:message commit) 
+                        :ts (System/currentTimeMillis) 
+                        :avatar-url (gh/get-cache-avatar (:author commit-event)))))
 
 (defn get-repo [{{name :name} :repository}]
   (first (filter #(= name (:name @%)) @g/repositories))) ;; Todo: Verify Owners

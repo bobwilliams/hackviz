@@ -1,4 +1,9 @@
 $(function() {
+    Highcharts.setOptions({
+        global: {
+            useUTC: false
+        }
+    });
     $("#go-btn").click(function() {
         renderGraph();
     });
