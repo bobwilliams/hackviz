@@ -18,7 +18,7 @@
 
 (defn broadcast [events]
   (doseq [listener @g/event-listeners]
-    (send-to-listener listener events)))
+    (send-to-listener listener (reverse events))))
 
 (defn buffer [events]
   (swap! g/event-buffer #(->> % (concat events) (take @g/buffer-count))))
